@@ -56,7 +56,7 @@ parity:			## verify output byte-parity with karabiner-kt
 	cd $(KARABINER_KT) && ./gradlew -q run
 	diff ./karabiner.json $(KARABINER_KT)/app/karabiner.json
 	@echo "karabiner.json: parity OK"
-	@CHANGES=$$(rsync -a --delete --dry-run --itemize-changes --exclude='.build' --exclude='.git' \
+	@CHANGES=$$(rsync -a --delete --dry-run --itemize-changes --omit-dir-times --exclude='.build' --exclude='.git' \
 		$(KARABINER_KT)/$(WINDOW_LAYOUT_NAME)/ ./$(WINDOW_LAYOUT_NAME)/); \
 	if [ -n "$$CHANGES" ]; then \
 		echo "window-layout server DRIFTED from karabiner-kt:"; \
