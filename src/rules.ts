@@ -42,6 +42,7 @@ interface WindowLayout {
   minimumHeight?: number;
   maximumWidth?: number;
   maximumHeight?: number;
+  restoreOriginal?: boolean;
 }
 
 interface AppWindowShortcut {
@@ -55,6 +56,12 @@ interface AppWindowShortcut {
 interface DirectionalWindowShortcut {
   key: KeyCode;
   direction: string;
+  layouts: WindowLayout[];
+}
+
+interface FrontmostWindowShortcut {
+  key: KeyCode;
+  cycleID: string;
   layouts: WindowLayout[];
 }
 
@@ -200,6 +207,18 @@ const spotifyLayout = makeWindowLayout({
   maximumWidth: 800,
 });
 
+// Hyper+F cycle: maximized fills the visible frame (not macOS fullscreen);
+// "almost" centers 90%×90% (5% margins scale across displays); the last step
+// replays the frame captured when the cycle started.
+const maximizedLayout = makeWindowLayout({
+  horizontalAnchor: "left",
+  verticalAnchor: "top",
+});
+
+const almostFullScreenLayout = centeredLayout(0.05, 0.05);
+
+const restoreOriginalLayout = makeWindowLayout({ restoreOriginal: true });
+
 function offsetLayouts(
   horizontalOffset: number,
   verticalOffset: number,
@@ -340,6 +359,14 @@ const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
   },
 ];
 
+const fillWindowShortcuts: FrontmostWindowShortcut[] = [
+  {
+    key: KeyCode.F,
+    cycleID: "fill",
+    layouts: [maximizedLayout, almostFullScreenLayout, restoreOriginalLayout],
+  },
+];
+
 function appWindowShortcutToUserCommand(s: AppWindowShortcut): SendUserCommand {
   return {
     payload: {
@@ -363,23 +390,30 @@ function appWindowShortcutToUserCommand(s: AppWindowShortcut): SendUserCommand {
   };
 }
 
-function directionalWindowShortcutToUserCommand(
-  s: DirectionalWindowShortcut,
+function frontmostWindowUserCommand(
+  cycleID: string,
+  layouts: WindowLayout[],
 ): SendUserCommand {
   return {
     payload: {
       version: 3,
       command: "cycle_window_layout",
-      cycle_id: `direction:${s.direction}`,
+      cycle_id: cycleID,
       target: { type: "frontmost" },
       screen_strategy: "existing",
       screen_frame: "visible",
       window_scope: "focused",
       cascade_offset: { x: 0, y: 0 },
       ...policyGroups(frontmostCyclePolicy),
-      layouts: s.layouts.map(windowLayoutToJson),
+      layouts: layouts.map(windowLayoutToJson),
     },
   };
+}
+
+function directionalWindowShortcutToUserCommand(
+  s: DirectionalWindowShortcut,
+): SendUserCommand {
+  return frontmostWindowUserCommand(`direction:${s.direction}`, s.layouts);
 }
 
 function windowLayoutToJson(layout: WindowLayout): JsonObject {
@@ -401,6 +435,7 @@ function windowLayoutToJson(layout: WindowLayout): JsonObject {
   if (layout.maximumWidth !== undefined) o.maximum_width = layout.maximumWidth;
   if (layout.maximumHeight !== undefined)
     o.maximum_height = layout.maximumHeight;
+  if (layout.restoreOriginal === true) o.restore_original = true;
   return o;
 }
 
@@ -456,6 +491,18 @@ export function createMainRules(): KarabinerRule[] {
         fromKey: shortcut.key,
         fromModifiers: { mandatory: newCapsLockModifiers },
         sendUserCommand: directionalWindowShortcutToUserCommand(shortcut),
+      })),
+    }),
+    karabinerRule({
+      description:
+        "Hyper F cycles frontmost window maximize / centered 90% / restore",
+      mappings: fillWindowShortcuts.map((shortcut) => ({
+        fromKey: shortcut.key,
+        fromModifiers: { mandatory: newCapsLockModifiers },
+        sendUserCommand: frontmostWindowUserCommand(
+          shortcut.cycleID,
+          shortcut.layouts,
+        ),
       })),
     }),
 

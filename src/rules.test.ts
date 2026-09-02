@@ -225,4 +225,40 @@ describe("window layout rules", () => {
     commands.forEach(assertSharedPolicyGroups);
     commands.forEach((c) => assertCyclePolicy(c, false));
   });
+
+  test("hyper f cycles maximize, centered 90%, restore", () => {
+    const launchers = manipulatorsFor(
+      "Hyper F cycles frontmost window maximize / centered 90% / restore",
+    );
+    const commands = sendUserCommandsOf(launchers);
+
+    expect(launchers.map((m) => m.from.keyCode)).toEqual([KeyCode.F]);
+    assertHyperModifiers(launchers);
+    expect(commands.map((c) => c.payload.cycle_id)).toEqual(["fill"]);
+    expect(commands.map((c) => obj(c.payload.target).type)).toEqual([
+      "frontmost",
+    ]);
+
+    const layouts = arr(commands[0].payload.layouts);
+    expect(layouts.length).toBe(3);
+
+    const maximized = obj(layouts[0]);
+    for (const side of ["left", "top", "right", "bottom"]) {
+      expect(num(obj(obj(maximized.insets)[side]).fraction)).toBe(0);
+    }
+    expect(maximized.restore_original).toBeUndefined();
+
+    const almostFullScreen = obj(layouts[1]);
+    for (const side of ["left", "top", "right", "bottom"]) {
+      expect(num(obj(obj(almostFullScreen.insets)[side]).fraction)).toBe(0.05);
+    }
+    expect(str(obj(almostFullScreen.resize_anchor).horizontal)).toBe("center");
+    expect(str(obj(almostFullScreen.resize_anchor).vertical)).toBe("center");
+
+    const restore = obj(layouts[2]);
+    expect(restore.restore_original).toBe(true);
+
+    commands.forEach(assertSharedPolicyGroups);
+    commands.forEach((c) => assertCyclePolicy(c, false));
+  });
 });
