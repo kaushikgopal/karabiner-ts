@@ -33,13 +33,15 @@ enum WindowManager {
 
   static func execute(command: UserCommand) async {
     guard AXIsProcessTrusted() else {
-      fputs("custom-karabiner-windowlayout-server needs Accessibility permission.\n", stderr)
+      fputs("kg-windowlayout-karabiner-server needs Accessibility permission.\n", stderr)
       return
     }
 
     switch command {
     case .cycleWindowLayout(let layoutCommand):
       await cycleWindowLayout(command: layoutCommand)
+    case .moveWindowToDisplay(let moveCommand):
+      moveFrontmostWindowToNextDisplay(command: moveCommand)
     }
   }
 
@@ -64,7 +66,7 @@ enum WindowManager {
         withBundleIdentifier: bundleIdentifier)
     else {
       fputs(
-        "custom-karabiner-windowlayout-server could not find \(bundleIdentifier).\n", stderr
+        "kg-windowlayout-karabiner-server could not find \(bundleIdentifier).\n", stderr
       )
       return
     }
@@ -79,7 +81,7 @@ enum WindowManager {
       NSWorkspace.shared.openApplication(at: applicationURL, configuration: configuration) {
         _, error in
         if let error {
-          fputs("custom-karabiner-windowlayout-server could not open the app: \(error)\n", stderr)
+          fputs("kg-windowlayout-karabiner-server could not open the app: \(error)\n", stderr)
         }
       }
     }
@@ -90,7 +92,7 @@ enum WindowManager {
     else {
       if !Task.isCancelled {
         fputs(
-          "custom-karabiner-windowlayout-server timed out opening \(bundleIdentifier).\n",
+          "kg-windowlayout-karabiner-server timed out opening \(bundleIdentifier).\n",
           stderr)
       }
       return
@@ -111,7 +113,7 @@ enum WindowManager {
     else {
       if !Task.isCancelled {
         fputs(
-          "custom-karabiner-windowlayout-server found no resizable focused window for \(bundleIdentifier).\n",
+          "kg-windowlayout-karabiner-server found no resizable focused window for \(bundleIdentifier).\n",
           stderr)
       }
       return
@@ -148,6 +150,66 @@ enum WindowManager {
       applicationElement: applicationElement,
       frontWindow: frontWindow,
       bundleIdentifier: bundleIdentifier)
+  }
+
+  /// Raycast-style "move to next display": keeps the window's size and its
+  /// offset within the current display's reference frame, clamped to stay on
+  /// the target display. Nothing changes when only one display is attached.
+  private static func moveFrontmostWindowToNextDisplay(command: MoveWindowToDisplayCommand) {
+    guard let application = NSWorkspace.shared.frontmostApplication,
+      let bundleIdentifier = application.bundleIdentifier
+    else {
+      return
+    }
+
+    let applicationElement = AXUIElementCreateApplication(application.processIdentifier)
+    AXUIElementSetMessagingTimeout(
+      applicationElement, Float(command.timeouts.axMessagingTimeoutSeconds))
+    guard let frontWindow = focusedUsableWindow(applicationElement, filter: command.windowFilter),
+      let windowFrame = copyFrame(frontWindow)
+    else {
+      return
+    }
+
+    let screens = NSScreen.screens
+    guard screens.count > 1 else { return }
+    let display = DisplayGeometry(
+      screenFrames: screens.map { $0.frame },
+      visibleFrames: screens.map { $0.visibleFrame })
+    guard let currentIndex = display.indexOfScreen(containing: windowFrame),
+      let source = display.geometry(at: currentIndex)?.referenceFrame(command.screenFrame),
+      let target = display.geometry(at: (currentIndex + 1) % screens.count)?
+        .referenceFrame(command.screenFrame)
+    else {
+      return
+    }
+
+    var origin = CGPoint(
+      x: windowFrame.minX + (target.minX - source.minX),
+      y: windowFrame.minY + (target.minY - source.minY))
+    // Clamp inside the target frame; pin to its leading edge when the window
+    // is larger than the display.
+    origin.x = min(max(origin.x, target.minX), max(target.minX, target.maxX - windowFrame.width))
+    origin.y = min(max(origin.y, target.minY), max(target.minY, target.maxY - windowFrame.height))
+    setPointAttribute(frontWindow, attribute: kAXPositionAttribute, point: origin)
+
+    if command.focusAfterLayout.raiseWindow {
+      AXUIElementPerformAction(frontWindow, kAXRaiseAction as CFString)
+    }
+    if command.focusAfterLayout.refocusWindow {
+      AXUIElementSetAttributeValue(
+        applicationElement,
+        kAXFocusedWindowAttribute as CFString,
+        frontWindow)
+    }
+    // AX observer callbacks arrive through the main run loop after this call returns.
+    if command.focusAfterLayout.raiseWindow || command.focusAfterLayout.refocusWindow {
+      CommandCoordinator.registerFocusSuppression(
+        for: token(
+          for: frontWindow,
+          bundleIdentifier: bundleIdentifier,
+          processIdentifier: application.processIdentifier))
+    }
   }
 
   private static func apply(

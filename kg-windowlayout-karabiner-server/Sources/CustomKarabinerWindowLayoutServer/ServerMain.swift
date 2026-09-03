@@ -36,23 +36,23 @@ enum CustomKarabinerWindowLayoutServer {
           }
         } catch {
           fputs(
-            "custom-karabiner-windowlayout-server ignored an invalid command: \(error)\n",
+            "kg-windowlayout-karabiner-server ignored an invalid command: \(error)\n",
             stderr)
         }
       },
       onError: { error in
-        fputs("custom-karabiner-windowlayout-server receiver error: \(error)\n", stderr)
+        fputs("kg-windowlayout-karabiner-server receiver error: \(error)\n", stderr)
       })
 
     do {
       try await instance.start()
       receiver = instance
       fputs(
-        "custom-karabiner-windowlayout-server listening at \(socketPath)\n",
+        "kg-windowlayout-karabiner-server listening at \(socketPath)\n",
         stderr)
     } catch {
       fputs(
-        "custom-karabiner-windowlayout-server failed to start: \(error)\n",
+        "kg-windowlayout-karabiner-server failed to start: \(error)\n",
         stderr)
       exit(1)
     }

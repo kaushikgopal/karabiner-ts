@@ -52,9 +52,10 @@ make restart-karabiner
 
 The default `make` command only regenerates and installs `karabiner.json`; it does not rebuild,
 replace, re-sign, or restart the window server. This keeps its macOS Accessibility identity stable.
-Run `make install-window-server` explicitly only when the Swift server itself changes. Because the
-server is ad-hoc signed, replacing its executable may require granting Accessibility permission to
-the new build once.
+`make install-window-server` reinstalls the server end-to-end: it removes the old app bundle, resets
+its Accessibility permission, installs the fresh build, briefly starts it so macOS shows the
+Accessibility prompt, then stops it and opens the Accessibility pane in System Settings. Enable the
+server in that list and run `make restart-window-server` to start it.
 
 Other commands (`make help`):
 
@@ -66,7 +67,7 @@ Other commands (`make help`):
 
 ## Responsive window shortcuts
 
-Karabiner's low-latency `send_user_command` API sends window commands to the persistent Swift `custom-karabiner-windowlayout-server`.
+Karabiner's low-latency `send_user_command` API sends window commands to the persistent Swift `kg-windowlayout-karabiner-server`.
 
 - Hyper+M/W/O/S/B opens the configured app. Repeated presses alternate between tall and wide
   layouts, with app-specific horizontal/vertical offsets that keep overlapping windows clickable.
@@ -85,7 +86,7 @@ timeouts, and every frame in the layout cycle. Changing these policies only upda
 `karabiner.json`.
 
 `make install-window-server` builds and installs the server as
-`~/Applications/custom-karabiner-windowlayout-server.app` and registers its LaunchAgent. Regular
+`~/Applications/kg-windowlayout-karabiner-server.app` and registers its LaunchAgent. Regular
 layout configuration is carried in Karabiner's user-command payload, so changing it only requires
 the default `make` command.
 

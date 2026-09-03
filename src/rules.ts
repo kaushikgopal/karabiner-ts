@@ -416,6 +416,21 @@ function directionalWindowShortcutToUserCommand(
   return frontmostWindowUserCommand(`direction:${s.direction}`, s.layouts);
 }
 
+// Raycast-style "move window to next display": the server keeps the window's
+// size and relative position, so no layout or cycle state is needed here.
+function moveWindowToDisplayUserCommand(): SendUserCommand {
+  return {
+    payload: {
+      version: 3,
+      command: "move_window_to_display",
+      screen_frame: "visible",
+      window_filter: windowFilterPolicyToJson(windowFilterPolicy),
+      focus_after_layout: focusAfterLayoutPolicyToJson(focusAfterLayoutPolicy),
+      timeouts: timeoutsPolicyToJson(timeoutsPolicy),
+    },
+  };
+}
+
 function windowLayoutToJson(layout: WindowLayout): JsonObject {
   const o: JsonObject = {
     insets: {
@@ -504,6 +519,17 @@ export function createMainRules(): KarabinerRule[] {
           shortcut.layouts,
         ),
       })),
+    }),
+
+    karabinerRule({
+      description: "Hyper D moves frontmost window to next display",
+      mappings: [
+        {
+          fromKey: KeyCode.D,
+          fromModifiers: { mandatory: newCapsLockModifiers },
+          sendUserCommand: moveWindowToDisplayUserCommand(),
+        },
+      ],
     }),
 
     // hyper + vim movements (jklp) ~= quick arrow keys (tries to accommodate modifiers)

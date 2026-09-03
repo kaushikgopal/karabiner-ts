@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>sh.kau.custom-karabiner-windowlayout-server</string>
+  <string>kg-windowlayout-karabiner-server</string>
   <key>ProgramArguments</key>
   <array>
     <string>__PROGRAM_PATH__</string>

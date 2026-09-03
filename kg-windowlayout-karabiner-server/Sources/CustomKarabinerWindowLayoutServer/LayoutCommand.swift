@@ -2,14 +2,33 @@ import Foundation
 
 enum UserCommand: Sendable {
   case cycleWindowLayout(WindowLayoutCommand)
+  case moveWindowToDisplay(MoveWindowToDisplayCommand)
 
   static func decode(json: Any) throws -> UserCommand {
     let data = try JSONSerialization.data(withJSONObject: json)
+    let envelope = try JSONDecoder().decode(Envelope.self, from: data)
+    guard envelope.version == 3 else {
+      throw CommandError.unsupportedVersion(envelope.version)
+    }
+    switch envelope.command {
+    case "cycle_window_layout":
+      return try decodeCycleWindowLayout(data: data)
+    case "move_window_to_display":
+      let payload = try JSONDecoder().decode(MovePayload.self, from: data)
+      return .moveWindowToDisplay(
+        MoveWindowToDisplayCommand(
+          windowFilter: payload.windowFilter ?? .default,
+          screenFrame: payload.screenFrame ?? .visible,
+          focusAfterLayout: payload.focusAfterLayout ?? .default,
+          timeouts: payload.timeouts ?? .default))
+    case let command:
+      throw CommandError.unknownCommand(command)
+    }
+  }
+
+  private static func decodeCycleWindowLayout(data: Data) throws -> UserCommand {
     let payload = try JSONDecoder().decode(Payload.self, from: data)
 
-    guard payload.version == 3 else {
-      throw CommandError.unsupportedVersion(payload.version)
-    }
     guard payload.command == "cycle_window_layout" else {
       throw CommandError.unknownCommand(payload.command)
     }
@@ -77,6 +96,8 @@ enum UserCommand: Sendable {
     switch self {
     case .cycleWindowLayout(let command):
       return command.cycleID
+    case .moveWindowToDisplay:
+      return "move_window_to_display"
     }
   }
 
@@ -84,6 +105,27 @@ enum UserCommand: Sendable {
     switch self {
     case .cycleWindowLayout(let command):
       return command.cyclePolicy
+    case .moveWindowToDisplay:
+      return .default
+    }
+  }
+
+  private struct Envelope: Decodable {
+    let version: Int
+    let command: String
+  }
+
+  private struct MovePayload: Decodable {
+    let windowFilter: WindowFilterPolicy?
+    let screenFrame: ScreenFrame?
+    let focusAfterLayout: FocusAfterLayoutPolicy?
+    let timeouts: TimeoutsPolicy?
+
+    enum CodingKeys: String, CodingKey {
+      case windowFilter = "window_filter"
+      case screenFrame = "screen_frame"
+      case focusAfterLayout = "focus_after_layout"
+      case timeouts
     }
   }
 
@@ -162,6 +204,13 @@ enum UserCommand: Sendable {
     case invalidLayoutConstraints
     case invalidTimeouts
   }
+}
+
+struct MoveWindowToDisplayCommand: Sendable {
+  let windowFilter: WindowFilterPolicy
+  let screenFrame: ScreenFrame
+  let focusAfterLayout: FocusAfterLayoutPolicy
+  let timeouts: TimeoutsPolicy
 }
 
 struct WindowLayoutCommand: Sendable {
@@ -366,6 +415,24 @@ struct WindowLayout: Decodable, Sendable {
     case maximumWidth = "maximum_width"
     case maximumHeight = "maximum_height"
     case restoreOriginal = "restore_original"
+  }
+
+  init(
+    insets: Insets,
+    resizeAnchor: ResizeAnchor,
+    minimumWidth: Double? = nil,
+    minimumHeight: Double? = nil,
+    maximumWidth: Double? = nil,
+    maximumHeight: Double? = nil,
+    restoreOriginal: Bool = false
+  ) {
+    self.insets = insets
+    self.resizeAnchor = resizeAnchor
+    self.minimumWidth = minimumWidth
+    self.minimumHeight = minimumHeight
+    self.maximumWidth = maximumWidth
+    self.maximumHeight = maximumHeight
+    self.restoreOriginal = restoreOriginal
   }
 
   init(from decoder: Decoder) throws {

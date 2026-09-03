@@ -100,7 +100,7 @@ final class FocusMonitor {
         return
       case .failed(let failure):
         fputs(
-          "custom-karabiner-windowlayout-server \(failure.stage) failed"
+          "kg-windowlayout-karabiner-server \(failure.stage) failed"
             + " pid=\(pid) attempt=\(attempt) error=\(failure.error)\n",
           stderr)
         guard failure.error == .cannotComplete || failure.error == .failure else { return }
