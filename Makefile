@@ -69,7 +69,7 @@ restart-window-server:	## start (or restart) the window server
 	launchctl bootstrap gui/$(shell id -u) $(WINDOW_LAYOUT_AGENT)
 
 restart-karabiner:	## restart karabiner user-server forcibly
-	launchctl kickstart -k gui/$(shell id -u)/org.pqrs.service.agent.karabiner_console_user_server
+	launchctl kickstart -k gui/$(shell id -u)/org.pqrs.service.agent.Karabiner-Console-User-Server
 
 fmt:			## prettier changed files on this branch
 	@echo "--- This script will run prettier on all changed files"
