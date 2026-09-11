@@ -101,6 +101,21 @@ final class CycleTrackerTests: XCTestCase {
     XCTAssertEqual(tracker.nextIndex(commandIdentifier: "app", window: window, stepCount: 2), 1)
   }
 
+  func testResetDropsOnlyMatchingCommandCycle() {
+    var tracker = CycleTracker<TestWindowToken>()
+    let window = token(bundleIdentifier: "example.app", elementHash: 1)
+
+    _ = tracker.nextIndex(commandIdentifier: "app", window: window, stepCount: 2)
+    tracker.reset(commandIdentifier: "other")
+
+    XCTAssertEqual(
+      tracker.nextIndex(commandIdentifier: "app", window: window, stepCount: 2), 1)
+    tracker.reset(commandIdentifier: "app")
+
+    XCTAssertEqual(
+      tracker.nextIndex(commandIdentifier: "app", window: window, stepCount: 2), 0)
+  }
+
   private func token(bundleIdentifier: String, elementHash: UInt) -> TestWindowToken {
     TestWindowToken(bundleIdentifier: bundleIdentifier, elementHash: elementHash)
   }

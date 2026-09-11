@@ -71,9 +71,12 @@ enum WindowManager {
       return
     }
 
+    let wasAlreadyRunning = !NSRunningApplication.runningApplications(
+      withBundleIdentifier: bundleIdentifier
+    ).isEmpty
     let wasTargetFrontmost =
       NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier
-    if NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).isEmpty {
+    if !wasAlreadyRunning {
       guard target.openIfNeeded else { return }
       let configuration = NSWorkspace.OpenConfiguration()
       configuration.activates = false
@@ -100,6 +103,15 @@ enum WindowManager {
     guard !Task.isCancelled else { return }
     if target.activate {
       application.activate(options: target.activateAllWindows ? [.activateAllWindows] : [])
+    }
+
+    // Focus-first: a running-but-backgrounded target only comes to the front.
+    // The next press (target frontmost) applies layout 0; freshly opened apps
+    // skip this branch and get their layout immediately.
+    if wasAlreadyRunning && !wasTargetFrontmost,
+      command.cyclePolicy.focusOnlyWhenNotFrontmost {
+      CommandCoordinator.resetCycle(commandIdentifier: command.cycleID)
+      return
     }
 
     let applicationElement = AXUIElementCreateApplication(application.processIdentifier)

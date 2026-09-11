@@ -49,6 +49,10 @@ enum CommandCoordinator {
       reset: reset)
   }
 
+  static func resetCycle(commandIdentifier: String) {
+    cycleTracker.reset(commandIdentifier: commandIdentifier)
+  }
+
   static func registerFocusSuppression(for window: AXWindowToken) {
     focusSuppression.register(key: window, now: ContinuousClock.now)
   }

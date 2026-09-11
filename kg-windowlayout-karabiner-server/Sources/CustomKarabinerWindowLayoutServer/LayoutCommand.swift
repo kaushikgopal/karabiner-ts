@@ -69,7 +69,8 @@ enum UserCommand: Sendable {
         resetOnApplicationChange: payloadPolicy.resetOnApplicationChange ?? true,
         resetOnFocusedWindowChange: payloadPolicy.resetOnFocusedWindowChange ?? true,
         resetWhenTargetNotFrontmost:
-          payloadPolicy.resetWhenTargetNotFrontmost ?? legacyResetWhenNotFrontmost)
+          payloadPolicy.resetWhenTargetNotFrontmost ?? legacyResetWhenNotFrontmost,
+        focusOnlyWhenNotFrontmost: payloadPolicy.focusOnlyWhenNotFrontmost ?? false)
     } else {
       cyclePolicy = CyclePolicy(
         resetOnApplicationChange: true,
@@ -183,11 +184,13 @@ enum UserCommand: Sendable {
     let resetOnApplicationChange: Bool?
     let resetOnFocusedWindowChange: Bool?
     let resetWhenTargetNotFrontmost: Bool?
+    let focusOnlyWhenNotFrontmost: Bool?
 
     enum CodingKeys: String, CodingKey {
       case resetOnApplicationChange = "reset_on_application_change"
       case resetOnFocusedWindowChange = "reset_on_focused_window_change"
       case resetWhenTargetNotFrontmost = "reset_when_target_not_frontmost"
+      case focusOnlyWhenNotFrontmost = "focus_only_when_not_frontmost"
     }
   }
 
@@ -300,11 +303,14 @@ struct FocusAfterLayoutPolicy: Decodable, Sendable {
 /// Resolved cycle-reset behavior. `resetWhenTargetNotFrontmost` is resolved at
 /// decode time from `cycle_policy.reset_when_target_not_frontmost`, falling
 /// back to the legacy `target.reset_cycle_when_not_frontmost` field when the
-/// new key is absent.
+/// new key is absent. `focusOnlyWhenNotFrontmost` activates a running but
+/// backgrounded application target without applying a layout, so the next
+/// press starts the cycle fresh once the app is frontmost.
 struct CyclePolicy: Sendable {
   let resetOnApplicationChange: Bool
   let resetOnFocusedWindowChange: Bool
   let resetWhenTargetNotFrontmost: Bool
+  var focusOnlyWhenNotFrontmost: Bool = false
 
   static let `default` = CyclePolicy(
     resetOnApplicationChange: true,

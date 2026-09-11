@@ -66,12 +66,16 @@ function assertSharedPolicyGroups(command: SendUserCommand) {
 function assertCyclePolicy(
   command: SendUserCommand,
   resetWhenTargetNotFrontmost: boolean,
+  focusOnlyWhenNotFrontmost: boolean,
 ) {
   const cyclePolicy = obj(command.payload.cycle_policy);
   expect(cyclePolicy.reset_on_application_change).toBe(true);
   expect(cyclePolicy.reset_on_focused_window_change).toBe(true);
   expect(cyclePolicy.reset_when_target_not_frontmost).toBe(
     resetWhenTargetNotFrontmost,
+  );
+  expect(cyclePolicy.focus_only_when_not_frontmost).toBe(
+    focusOnlyWhenNotFrontmost,
   );
 }
 
@@ -128,7 +132,7 @@ describe("window layout rules", () => {
     expect(appTarget.activate_all_windows).toBe(true);
 
     commands.forEach(assertSharedPolicyGroups);
-    commands.forEach((c) => assertCyclePolicy(c, true));
+    commands.forEach((c) => assertCyclePolicy(c, true, true));
 
     const browserCommand = commands[6];
     expect(browserCommand.payload.window_scope).toBe("all");
@@ -223,7 +227,7 @@ describe("window layout rules", () => {
     ).toBe(0.5);
 
     commands.forEach(assertSharedPolicyGroups);
-    commands.forEach((c) => assertCyclePolicy(c, false));
+    commands.forEach((c) => assertCyclePolicy(c, false, false));
   });
 
   test("hyper f cycles maximize, centered 90%, restore", () => {
@@ -259,6 +263,6 @@ describe("window layout rules", () => {
     expect(restore.restore_original).toBe(true);
 
     commands.forEach(assertSharedPolicyGroups);
-    commands.forEach((c) => assertCyclePolicy(c, false));
+    commands.forEach((c) => assertCyclePolicy(c, false, false));
   });
 });

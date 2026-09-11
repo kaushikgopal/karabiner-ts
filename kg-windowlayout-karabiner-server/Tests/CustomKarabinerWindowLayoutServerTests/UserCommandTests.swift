@@ -93,6 +93,7 @@ final class UserCommandTests: XCTestCase {
     XCTAssertEqual(layoutCommand.cyclePolicy.resetOnApplicationChange, true)
     XCTAssertEqual(layoutCommand.cyclePolicy.resetOnFocusedWindowChange, true)
     XCTAssertEqual(layoutCommand.cyclePolicy.resetWhenTargetNotFrontmost, false)
+    XCTAssertEqual(layoutCommand.cyclePolicy.focusOnlyWhenNotFrontmost, false)
     XCTAssertEqual(layoutCommand.timeouts.axMessagingTimeoutSeconds, 1.0)
     XCTAssertEqual(layoutCommand.timeouts.applicationWaitTimeoutMilliseconds, 5000)
     XCTAssertEqual(layoutCommand.timeouts.focusedWindowWaitTimeoutMilliseconds, 5000)
@@ -194,6 +195,22 @@ final class UserCommandTests: XCTestCase {
 
     XCTAssertEqual(layoutCommand.cyclePolicy.resetOnApplicationChange, false)
     XCTAssertEqual(layoutCommand.cyclePolicy.resetWhenTargetNotFrontmost, true)
+  }
+
+  func testDecodesFocusOnlyWhenNotFrontmostPolicy() throws {
+    var payload = commandPayload(target: ["type": "frontmost"])
+    payload["cycle_policy"] = [
+      "reset_when_target_not_frontmost": true,
+      "focus_only_when_not_frontmost": true,
+    ]
+
+    let command = try UserCommand.decode(json: payload)
+    guard case .cycleWindowLayout(let layoutCommand) = command else {
+      return XCTFail("Expected a window layout command")
+    }
+
+    XCTAssertEqual(layoutCommand.cyclePolicy.resetWhenTargetNotFrontmost, true)
+    XCTAssertEqual(layoutCommand.cyclePolicy.focusOnlyWhenNotFrontmost, true)
   }
 
   private func commandPayload(target: [String: Any]) -> [String: Any] {

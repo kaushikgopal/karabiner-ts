@@ -80,6 +80,7 @@ interface CyclePolicy {
   resetOnApplicationChange: boolean;
   resetOnFocusedWindowChange: boolean;
   resetWhenTargetNotFrontmost: boolean;
+  focusOnlyWhenNotFrontmost: boolean;
 }
 
 interface TimeoutsPolicy {
@@ -106,16 +107,20 @@ const timeoutsPolicy: TimeoutsPolicy = {
   pollIntervalMilliseconds: 25,
 };
 
-// Only the cycle policy varies by target kind.
+// Only the cycle policy varies by target kind. App launchers focus a
+// running-but-backgrounded target without resizing it; the first frontmost
+// press applies the first layout.
 const appCyclePolicy: CyclePolicy = {
   resetOnApplicationChange: true,
   resetOnFocusedWindowChange: true,
   resetWhenTargetNotFrontmost: true,
+  focusOnlyWhenNotFrontmost: true,
 };
 const frontmostCyclePolicy: CyclePolicy = {
   resetOnApplicationChange: true,
   resetOnFocusedWindowChange: true,
   resetWhenTargetNotFrontmost: false,
+  focusOnlyWhenNotFrontmost: false,
 };
 
 function windowFilterPolicyToJson(p: WindowFilterPolicy): JsonObject {
@@ -135,6 +140,7 @@ function cyclePolicyToJson(p: CyclePolicy): JsonObject {
     reset_on_application_change: p.resetOnApplicationChange,
     reset_on_focused_window_change: p.resetOnFocusedWindowChange,
     reset_when_target_not_frontmost: p.resetWhenTargetNotFrontmost,
+    focus_only_when_not_frontmost: p.focusOnlyWhenNotFrontmost,
   };
 }
 

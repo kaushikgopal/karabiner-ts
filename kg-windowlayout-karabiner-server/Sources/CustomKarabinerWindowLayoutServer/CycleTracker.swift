@@ -37,6 +37,13 @@ struct CycleTracker<Token: WindowCycleToken> {
     return index
   }
 
+  /// Drops the cycle state for a command. Focus-only activations use this so
+  /// the target's next press starts at layout 0.
+  mutating func reset(commandIdentifier: String) {
+    guard let state, state.commandIdentifier == commandIdentifier else { return }
+    self.state = nil
+  }
+
   mutating func applicationDidActivate(bundleIdentifier: String?) {
     guard cyclePolicy.resetOnApplicationChange, let state else { return }
     if state.window.bundleIdentifier != bundleIdentifier {
