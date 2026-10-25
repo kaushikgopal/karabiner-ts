@@ -664,10 +664,10 @@
                                             "payload": {
                                                 "version": 3,
                                                 "command": "cycle_window_layout",
-                                                "cycle_id": "app:net.imput.helium",
+                                                "cycle_id": "app:org.mozilla.firefox",
                                                 "target": {
                                                     "type": "application",
-                                                    "bundle_identifier": "net.imput.helium",
+                                                    "bundle_identifier": "org.mozilla.firefox",
                                                     "open_if_needed": true,
                                                     "activate": true,
                                                     "activate_all_windows": true

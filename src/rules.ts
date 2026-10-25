@@ -276,7 +276,7 @@ const appWindowShortcuts: AppWindowShortcut[] = [
   {
     ...appWindowShortcut(
       KeyCode.B,
-      "net.imput.helium",
+      "org.mozilla.firefox",
       offsetLayouts(240, 96, browserFocusedLayout),
     ),
     windowScope: "all",

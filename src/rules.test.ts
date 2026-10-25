@@ -117,7 +117,7 @@ describe("window layout rules", () => {
       "md.obsidian",
       "com.tinyspeck.slackmacgap",
       "com.spotify.client",
-      "net.imput.helium",
+      "org.mozilla.firefox",
       "com.mitchellh.ghostty",
     ]);
     expect(commands.map((c) => arr(c.payload.layouts).length)).toEqual([
