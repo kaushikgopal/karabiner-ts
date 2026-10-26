@@ -774,10 +774,10 @@
                                             "payload": {
                                                 "version": 3,
                                                 "command": "cycle_window_layout",
-                                                "cycle_id": "app:com.mitchellh.ghostty",
+                                                "cycle_id": "app:com.superlogical.rex",
                                                 "target": {
                                                     "type": "application",
-                                                    "bundle_identifier": "com.mitchellh.ghostty",
+                                                    "bundle_identifier": "com.superlogical.rex",
                                                     "open_if_needed": true,
                                                     "activate": true,
                                                     "activate_all_windows": true

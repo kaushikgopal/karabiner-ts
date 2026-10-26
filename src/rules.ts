@@ -282,7 +282,7 @@ const appWindowShortcuts: AppWindowShortcut[] = [
     windowScope: "all",
     cascadeOffset: 48,
   },
-  appWindowShortcut(KeyCode.T, "com.mitchellh.ghostty", [
+  appWindowShortcut(KeyCode.T, "com.superlogical.rex", [
     terminalFocusedLayout,
     wideLayout,
   ]),

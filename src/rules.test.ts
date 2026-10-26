@@ -118,7 +118,7 @@ describe("window layout rules", () => {
       "com.tinyspeck.slackmacgap",
       "com.spotify.client",
       "org.mozilla.firefox",
-      "com.mitchellh.ghostty",
+      "com.superlogical.rex",
     ]);
     expect(commands.map((c) => arr(c.payload.layouts).length)).toEqual([
       1, 2, 2, 2, 2, 1, 2, 2,

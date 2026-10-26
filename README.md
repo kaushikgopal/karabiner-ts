@@ -74,7 +74,7 @@ Karabiner's low-latency `send_user_command` API sends window commands to the per
   app-specific horizontal/vertical offsets that keep overlapping windows clickable. A freshly
   launched app lands directly in its first layout.
 - Hyper+1 places 1Password at the bottom-right; Hyper+0 places Spotify at full height on the left.
-- Hyper+T alternates Ghostty between centered tall and wide layouts without an offset.
+- Hyper+T alternates Rex between centered tall and wide layouts without an offset.
 - Hyper+Up/Down alternates the frontmost window between the corresponding half and two-thirds.
 - Hyper+Left/Right cycles the frontmost window through the corresponding half, third, and two-thirds.
 - Hyper+F cycles the frontmost window through maximized (fills the visible frame, not macOS
