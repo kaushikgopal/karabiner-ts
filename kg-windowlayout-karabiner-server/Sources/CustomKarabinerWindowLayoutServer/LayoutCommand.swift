@@ -55,6 +55,7 @@ enum UserCommand: Sendable {
       target = .application(
         ApplicationTarget(
           bundleIdentifier: bundleIdentifier,
+          fallbackBundleIdentifiers: payload.target.fallbackBundleIdentifiers ?? [],
           openIfNeeded: payload.target.openIfNeeded ?? false,
           activate: payload.target.activate ?? false,
           activateAllWindows: payload.target.activateAllWindows ?? false))
@@ -165,6 +166,7 @@ enum UserCommand: Sendable {
   private struct TargetPayload: Decodable {
     let type: TargetType
     let bundleIdentifier: String?
+    let fallbackBundleIdentifiers: [String]?
     let openIfNeeded: Bool?
     let activate: Bool?
     let activateAllWindows: Bool?
@@ -173,6 +175,7 @@ enum UserCommand: Sendable {
     enum CodingKeys: String, CodingKey {
       case type
       case bundleIdentifier = "bundle_identifier"
+      case fallbackBundleIdentifiers = "fallback_bundle_identifiers"
       case openIfNeeded = "open_if_needed"
       case activate
       case activateAllWindows = "activate_all_windows"
@@ -237,9 +240,18 @@ enum WindowTarget: Sendable {
 
 struct ApplicationTarget: Sendable {
   let bundleIdentifier: String
+  let fallbackBundleIdentifiers: [String]
   let openIfNeeded: Bool
   let activate: Bool
   let activateAllWindows: Bool
+
+  var bundleIdentifiers: [String] {
+    [bundleIdentifier] + fallbackBundleIdentifiers
+  }
+
+  func firstAvailableBundleIdentifier(in availableBundleIdentifiers: Set<String>) -> String? {
+    bundleIdentifiers.first(where: availableBundleIdentifiers.contains)
+  }
 }
 
 /// Selects which windows are eligible for layout. Positive-size validity is

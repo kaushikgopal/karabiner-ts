@@ -60,17 +60,28 @@ enum WindowManager {
     command: WindowLayoutCommand,
     target: ApplicationTarget
   ) async {
-    let bundleIdentifier = target.bundleIdentifier
+    let availableBundleIdentifiers = Set(
+      target.bundleIdentifiers.filter { bundleIdentifier in
+        !NSRunningApplication.runningApplications(
+          withBundleIdentifier: bundleIdentifier
+        ).isEmpty
+          || NSWorkspace.shared.urlForApplication(
+            withBundleIdentifier: bundleIdentifier
+          ) != nil
+      })
     guard
-      let applicationURL = NSWorkspace.shared.urlForApplication(
-        withBundleIdentifier: bundleIdentifier)
+      let bundleIdentifier = target.firstAvailableBundleIdentifier(
+        in: availableBundleIdentifiers)
     else {
+      let candidates = target.bundleIdentifiers.joined(separator: ", ")
       fputs(
-        "kg-windowlayout-karabiner-server could not find \(bundleIdentifier).\n", stderr
+        "kg-windowlayout-karabiner-server could not find any of [\(candidates)].\n", stderr
       )
       return
     }
 
+    let applicationURL = NSWorkspace.shared.urlForApplication(
+      withBundleIdentifier: bundleIdentifier)
     let wasAlreadyRunning = !NSRunningApplication.runningApplications(
       withBundleIdentifier: bundleIdentifier
     ).isEmpty
@@ -78,6 +89,12 @@ enum WindowManager {
       NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier
     if !wasAlreadyRunning {
       guard target.openIfNeeded else { return }
+      guard let applicationURL else {
+        fputs(
+          "kg-windowlayout-karabiner-server could not resolve \(bundleIdentifier).\n",
+          stderr)
+        return
+      }
       let configuration = NSWorkspace.OpenConfiguration()
       configuration.activates = false
       configuration.addsToRecentItems = false

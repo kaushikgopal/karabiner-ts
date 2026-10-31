@@ -21,6 +21,7 @@ final class UserCommandTests: XCTestCase {
       return XCTFail("Expected an application target")
     }
     XCTAssertEqual(applicationTarget.bundleIdentifier, "example.app")
+    XCTAssertEqual(applicationTarget.fallbackBundleIdentifiers, [])
     XCTAssertTrue(applicationTarget.openIfNeeded)
     XCTAssertTrue(applicationTarget.activate)
     XCTAssertTrue(applicationTarget.activateAllWindows)
@@ -31,6 +32,33 @@ final class UserCommandTests: XCTestCase {
     XCTAssertEqual(layoutCommand.cascadeOffset.x, 48)
     XCTAssertEqual(layoutCommand.layouts.count, 1)
     XCTAssertEqual(layoutCommand.layouts[0].insets.left.fraction, 0.12)
+  }
+
+  func testDecodesPreferredApplicationFallbacks() throws {
+    let command = try UserCommand.decode(
+      json: commandPayload(target: [
+        "type": "application",
+        "bundle_identifier": "com.superlogical.rex",
+        "fallback_bundle_identifiers": ["com.mitchellh.ghostty"],
+        "open_if_needed": true,
+      ]))
+
+    guard case .cycleWindowLayout(let layoutCommand) = command else {
+      return XCTFail("Expected a window layout command")
+    }
+    guard case .application(let applicationTarget) = layoutCommand.target else {
+      return XCTFail("Expected an application target")
+    }
+
+    XCTAssertEqual(
+      applicationTarget.firstAvailableBundleIdentifier(
+        in: Set(["com.mitchellh.ghostty"])),
+      "com.mitchellh.ghostty")
+    XCTAssertEqual(
+      applicationTarget.firstAvailableBundleIdentifier(
+        in: Set(["com.superlogical.rex", "com.mitchellh.ghostty"])),
+      "com.superlogical.rex")
+    XCTAssertNil(applicationTarget.firstAvailableBundleIdentifier(in: Set()))
   }
 
   func testDecodesFrontmostLayoutCommand() throws {

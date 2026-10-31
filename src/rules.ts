@@ -48,6 +48,7 @@ interface WindowLayout {
 interface AppWindowShortcut {
   key: KeyCode;
   bundleIdentifier: string;
+  fallbackBundleIdentifiers?: string[];
   layouts: WindowLayout[];
   windowScope: string;
   cascadeOffset: number;
@@ -282,10 +283,13 @@ const appWindowShortcuts: AppWindowShortcut[] = [
     windowScope: "all",
     cascadeOffset: 48,
   },
-  appWindowShortcut(KeyCode.T, "com.superlogical.rex", [
-    terminalFocusedLayout,
-    wideLayout,
-  ]),
+  {
+    ...appWindowShortcut(KeyCode.T, "com.superlogical.rex", [
+      terminalFocusedLayout,
+      wideLayout,
+    ]),
+    fallbackBundleIdentifiers: ["com.mitchellh.ghostty"],
+  },
 ];
 
 const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
@@ -382,6 +386,9 @@ function appWindowShortcutToUserCommand(s: AppWindowShortcut): SendUserCommand {
       target: {
         type: "application",
         bundle_identifier: s.bundleIdentifier,
+        ...(s.fallbackBundleIdentifiers?.length
+          ? { fallback_bundle_identifiers: s.fallbackBundleIdentifiers }
+          : {}),
         open_if_needed: true,
         activate: true,
         activate_all_windows: true,

@@ -120,6 +120,9 @@ describe("window layout rules", () => {
       "org.mozilla.firefox",
       "com.superlogical.rex",
     ]);
+    expect(
+      arr(obj(commands[7].payload.target).fallback_bundle_identifiers).map(str),
+    ).toEqual(["com.mitchellh.ghostty"]);
     expect(commands.map((c) => arr(c.payload.layouts).length)).toEqual([
       1, 2, 2, 2, 2, 1, 2, 2,
     ]);
