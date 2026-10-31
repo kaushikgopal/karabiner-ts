@@ -42,6 +42,7 @@ interface WindowLayout {
   minimumHeight?: number;
   maximumWidth?: number;
   maximumHeight?: number;
+  preserveCurrent?: "horizontal" | "vertical";
   restoreOriginal?: boolean;
 }
 
@@ -301,12 +302,19 @@ const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
         bottom: { fraction: 0.5, points: 0 },
         horizontalAnchor: "left",
         verticalAnchor: "top",
+        preserveCurrent: "horizontal",
+      }),
+      makeWindowLayout({
+        bottom: { fraction: 0.5, points: 0 },
+        horizontalAnchor: "left",
+        verticalAnchor: "top",
       }),
       makeWindowLayout({
         bottom: { fraction: 1.0 / 3.0, points: 0 },
         horizontalAnchor: "left",
         verticalAnchor: "top",
       }),
+      restoreOriginalLayout,
     ],
   },
   {
@@ -317,18 +325,31 @@ const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
         top: { fraction: 0.5, points: 0 },
         horizontalAnchor: "left",
         verticalAnchor: "bottom",
+        preserveCurrent: "horizontal",
+      }),
+      makeWindowLayout({
+        top: { fraction: 0.5, points: 0 },
+        horizontalAnchor: "left",
+        verticalAnchor: "bottom",
       }),
       makeWindowLayout({
         top: { fraction: 1.0 / 3.0, points: 0 },
         horizontalAnchor: "left",
         verticalAnchor: "bottom",
       }),
+      restoreOriginalLayout,
     ],
   },
   {
     key: LeftArrow,
     direction: "left",
     layouts: [
+      makeWindowLayout({
+        right: { fraction: 0.5, points: 0 },
+        horizontalAnchor: "left",
+        verticalAnchor: "top",
+        preserveCurrent: "vertical",
+      }),
       makeWindowLayout({
         right: { fraction: 0.5, points: 0 },
         horizontalAnchor: "left",
@@ -344,12 +365,19 @@ const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
         horizontalAnchor: "left",
         verticalAnchor: "top",
       }),
+      restoreOriginalLayout,
     ],
   },
   {
     key: RightArrow,
     direction: "right",
     layouts: [
+      makeWindowLayout({
+        left: { fraction: 0.5, points: 0 },
+        horizontalAnchor: "right",
+        verticalAnchor: "top",
+        preserveCurrent: "vertical",
+      }),
       makeWindowLayout({
         left: { fraction: 0.5, points: 0 },
         horizontalAnchor: "right",
@@ -365,6 +393,7 @@ const directionalWindowShortcuts: DirectionalWindowShortcut[] = [
         horizontalAnchor: "right",
         verticalAnchor: "top",
       }),
+      restoreOriginalLayout,
     ],
   },
 ];
@@ -463,6 +492,8 @@ function windowLayoutToJson(layout: WindowLayout): JsonObject {
   if (layout.maximumWidth !== undefined) o.maximum_width = layout.maximumWidth;
   if (layout.maximumHeight !== undefined)
     o.maximum_height = layout.maximumHeight;
+  if (layout.preserveCurrent !== undefined)
+    o.preserve_current = layout.preserveCurrent;
   if (layout.restoreOriginal === true) o.restore_original = true;
   return o;
 }

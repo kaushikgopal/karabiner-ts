@@ -15,6 +15,7 @@ struct ScreenGeometry: Sendable {
 struct LayoutCalculator {
   static func frame(
     layout: WindowLayout,
+    currentFrame: CGRect,
     screen: ScreenGeometry,
     screenFrame: ScreenFrame
   ) -> CGRect {
@@ -27,11 +28,11 @@ struct LayoutCalculator {
     let availableHeight = max(0, referenceFrame.height - top - bottom)
     let width = clamp(
       minimum: min(CGFloat(layout.minimumWidth ?? 0), referenceFrame.width),
-      value: availableWidth,
+      value: layout.preserveCurrent == .horizontal ? currentFrame.width : availableWidth,
       maximum: min(CGFloat(layout.maximumWidth ?? .greatestFiniteMagnitude), referenceFrame.width))
     let height = clamp(
       minimum: min(CGFloat(layout.minimumHeight ?? 0), referenceFrame.height),
-      value: availableHeight,
+      value: layout.preserveCurrent == .vertical ? currentFrame.height : availableHeight,
       maximum: min(
         CGFloat(layout.maximumHeight ?? .greatestFiniteMagnitude), referenceFrame.height))
     let roundedSize = CGSize(width: width.rounded(), height: height.rounded())
@@ -41,12 +42,30 @@ struct LayoutCalculator {
       width: availableWidth,
       height: availableHeight)
 
-    return CGRect(
-      origin: anchoredOrigin(
-        targetFrame: targetFrame,
-        actualSize: roundedSize,
-        anchor: layout.resizeAnchor),
-      size: roundedSize)
+    let anchored = anchoredOrigin(
+      targetFrame: targetFrame,
+      actualSize: roundedSize,
+      anchor: layout.resizeAnchor)
+    let origin: CGPoint
+    switch layout.preserveCurrent {
+    case .horizontal:
+      origin = CGPoint(
+        x: clamp(
+          minimum: referenceFrame.minX,
+          value: currentFrame.minX,
+          maximum: referenceFrame.maxX - roundedSize.width),
+        y: anchored.y)
+    case .vertical:
+      origin = CGPoint(
+        x: anchored.x,
+        y: clamp(
+          minimum: referenceFrame.minY,
+          value: currentFrame.minY,
+          maximum: referenceFrame.maxY - roundedSize.height))
+    case nil:
+      origin = anchored
+    }
+    return CGRect(origin: origin, size: roundedSize)
   }
 
   static func cascadeFrame(

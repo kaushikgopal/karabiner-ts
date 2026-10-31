@@ -947,6 +947,31 @@
                                                         "resize_anchor": {
                                                             "horizontal": "left",
                                                             "vertical": "top"
+                                                        },
+                                                        "preserve_current": "horizontal"
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.5,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "left",
+                                                            "vertical": "top"
                                                         }
                                                     },
                                                     {
@@ -972,6 +997,31 @@
                                                             "horizontal": "left",
                                                             "vertical": "top"
                                                         }
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "center",
+                                                            "vertical": "center"
+                                                        },
+                                                        "restore_original": true
                                                     }
                                                 ]
                                             }
@@ -1053,6 +1103,31 @@
                                                         "resize_anchor": {
                                                             "horizontal": "left",
                                                             "vertical": "bottom"
+                                                        },
+                                                        "preserve_current": "horizontal"
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.5,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "left",
+                                                            "vertical": "bottom"
                                                         }
                                                     },
                                                     {
@@ -1078,6 +1153,31 @@
                                                             "horizontal": "left",
                                                             "vertical": "bottom"
                                                         }
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "center",
+                                                            "vertical": "center"
+                                                        },
+                                                        "restore_original": true
                                                     }
                                                 ]
                                             }
@@ -1159,6 +1259,31 @@
                                                         "resize_anchor": {
                                                             "horizontal": "left",
                                                             "vertical": "top"
+                                                        },
+                                                        "preserve_current": "vertical"
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.5,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "left",
+                                                            "vertical": "top"
                                                         }
                                                     },
                                                     {
@@ -1208,6 +1333,31 @@
                                                             "horizontal": "left",
                                                             "vertical": "top"
                                                         }
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "center",
+                                                            "vertical": "center"
+                                                        },
+                                                        "restore_original": true
                                                     }
                                                 ]
                                             }
@@ -1289,6 +1439,31 @@
                                                         "resize_anchor": {
                                                             "horizontal": "right",
                                                             "vertical": "top"
+                                                        },
+                                                        "preserve_current": "vertical"
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.5,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "right",
+                                                            "vertical": "top"
                                                         }
                                                     },
                                                     {
@@ -1338,6 +1513,31 @@
                                                             "horizontal": "right",
                                                             "vertical": "top"
                                                         }
+                                                    },
+                                                    {
+                                                        "insets": {
+                                                            "left": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "top": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "right": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            },
+                                                            "bottom": {
+                                                                "fraction": 0.0,
+                                                                "points": 0
+                                                            }
+                                                        },
+                                                        "resize_anchor": {
+                                                            "horizontal": "center",
+                                                            "vertical": "center"
+                                                        },
+                                                        "restore_original": true
                                                     }
                                                 ]
                                             }

@@ -299,6 +299,7 @@ enum WindowManager {
       }
       let frame = LayoutCalculator.frame(
         layout: layout,
+        currentFrame: windowFrame,
         screen: screen,
         screenFrame: command.screenFrame)
       let cascadeFrame = LayoutCalculator.cascadeFrame(

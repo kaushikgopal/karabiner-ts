@@ -76,8 +76,10 @@ Karabiner's low-latency `send_user_command` API sends window commands to the per
 - Hyper+1 places 1Password at the bottom-right; Hyper+0 places Spotify at full height on the left.
 - Hyper+T prefers Rex when installed and launches it if needed; it uses Ghostty when Rex is
   unavailable. Both alternate between centered tall and wide layouts without an offset.
-- Hyper+Up/Down alternates the frontmost window between the corresponding half and two-thirds.
-- Hyper+Left/Right cycles the frontmost window through the corresponding half, third, and two-thirds.
+- Hyper+arrow starts each directional cycle by moving the frontmost window into the
+  pressed half while retaining its position and size on the perpendicular axis. The
+  existing half, two-thirds, or third layouts follow. The final step restores the
+  frame from cycle start.
 - Hyper+F cycles the frontmost window through maximized (fills the visible frame, not macOS
   fullscreen), a centered 90%×90% layout, and the frame it had when the cycle started.
 - Changing the focused app or window resets the next command to its first layout.

@@ -215,17 +215,33 @@ describe("window layout rules", () => {
       "direction:right",
     ]);
     expect(commands.map((c) => arr(c.payload.layouts).length)).toEqual([
-      2, 2, 3, 3,
+      4, 4, 5, 5,
     ]);
     expect(
+      commands.map((c) => arr(c.payload.layouts).slice(1, -1).length),
+    ).toEqual([2, 2, 3, 3]);
+    const pushInsetSides = ["bottom", "top", "right", "left"];
+    commands.forEach((command, index) => {
+      const pushLayout = obj(arr(command.payload.layouts)[0]);
+      expect(
+        num(obj(obj(pushLayout.insets)[pushInsetSides[index]]).fraction),
+      ).toBe(0.5);
+    });
+    expect(
+      commands.map((c) => str(obj(arr(c.payload.layouts)[0]).preserve_current)),
+    ).toEqual(["horizontal", "horizontal", "vertical", "vertical"]);
+    expect(
+      commands.map((c) => obj(arr(c.payload.layouts).at(-1)).restore_original),
+    ).toEqual(Array(4).fill(true));
+    expect(
       num(
-        obj(obj(obj(arr(commands[0].payload.layouts)[0]).insets).bottom)
+        obj(obj(obj(arr(commands[0].payload.layouts)[1]).insets).bottom)
           .fraction,
       ),
     ).toBe(0.5);
     expect(
       num(
-        obj(obj(obj(arr(commands[3].payload.layouts)[0]).insets).left).fraction,
+        obj(obj(obj(arr(commands[3].payload.layouts)[1]).insets).left).fraction,
       ),
     ).toBe(0.5);
 

@@ -34,6 +34,29 @@ final class UserCommandTests: XCTestCase {
     XCTAssertEqual(layoutCommand.layouts[0].insets.left.fraction, 0.12)
   }
 
+  func testAbsentPreserveCurrentUsesExistingLayoutBehavior() throws {
+    let command = try UserCommand.decode(json: commandPayload(target: ["type": "frontmost"]))
+    guard case .cycleWindowLayout(let layoutCommand) = command else {
+      return XCTFail("Expected a window layout command")
+    }
+
+    XCTAssertNil(layoutCommand.layouts[0].preserveCurrent)
+  }
+
+  func testDecodesPreserveCurrentAxis() throws {
+    var payload = commandPayload(target: ["type": "frontmost"])
+    var layouts = payload["layouts"] as! [[String: Any]]
+    layouts[0]["preserve_current"] = "horizontal"
+    payload["layouts"] = layouts
+
+    let command = try UserCommand.decode(json: payload)
+    guard case .cycleWindowLayout(let layoutCommand) = command else {
+      return XCTFail("Expected a window layout command")
+    }
+
+    XCTAssertEqual(layoutCommand.layouts[0].preserveCurrent, .horizontal)
+  }
+
   func testDecodesPreferredApplicationFallbacks() throws {
     let command = try UserCommand.decode(
       json: commandPayload(target: [

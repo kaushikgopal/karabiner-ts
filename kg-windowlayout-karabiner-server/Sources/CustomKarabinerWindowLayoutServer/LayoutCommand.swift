@@ -421,6 +421,8 @@ struct WindowLayout: Decodable, Sendable {
   let minimumHeight: Double?
   let maximumWidth: Double?
   let maximumHeight: Double?
+  /// Retains the current origin and extent on this axis, clamped to the reference frame.
+  let preserveCurrent: PreservedAxis?
   /// When true, insets/anchors are ignored and the window returns to the frame
   /// captured when its layout cycle started (layout index 0).
   let restoreOriginal: Bool
@@ -432,6 +434,7 @@ struct WindowLayout: Decodable, Sendable {
     case minimumHeight = "minimum_height"
     case maximumWidth = "maximum_width"
     case maximumHeight = "maximum_height"
+    case preserveCurrent = "preserve_current"
     case restoreOriginal = "restore_original"
   }
 
@@ -442,6 +445,7 @@ struct WindowLayout: Decodable, Sendable {
     minimumHeight: Double? = nil,
     maximumWidth: Double? = nil,
     maximumHeight: Double? = nil,
+    preserveCurrent: PreservedAxis? = nil,
     restoreOriginal: Bool = false
   ) {
     self.insets = insets
@@ -450,6 +454,7 @@ struct WindowLayout: Decodable, Sendable {
     self.minimumHeight = minimumHeight
     self.maximumWidth = maximumWidth
     self.maximumHeight = maximumHeight
+    self.preserveCurrent = preserveCurrent
     self.restoreOriginal = restoreOriginal
   }
 
@@ -461,6 +466,7 @@ struct WindowLayout: Decodable, Sendable {
     minimumHeight = try container.decodeIfPresent(Double.self, forKey: .minimumHeight)
     maximumWidth = try container.decodeIfPresent(Double.self, forKey: .maximumWidth)
     maximumHeight = try container.decodeIfPresent(Double.self, forKey: .maximumHeight)
+    preserveCurrent = try container.decodeIfPresent(PreservedAxis.self, forKey: .preserveCurrent)
     restoreOriginal = try container.decodeIfPresent(Bool.self, forKey: .restoreOriginal) ?? false
   }
 
@@ -476,6 +482,12 @@ struct WindowLayout: Decodable, Sendable {
 struct RelativeLength: Decodable, Sendable {
   let fraction: Double
   let points: Double
+}
+
+/// The current origin and extent to retain when a layout changes the other axis.
+enum PreservedAxis: String, Decodable, Sendable {
+  case horizontal
+  case vertical
 }
 
 enum HorizontalAnchor: String, Decodable, Sendable {

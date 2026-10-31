@@ -12,7 +12,11 @@ final class LayoutCalculatorTests: XCTestCase {
       bottom: .init(fraction: 0.05, points: 5))
 
     XCTAssertEqual(
-      LayoutCalculator.frame(layout: layout, screen: laptopScreen, screenFrame: .visible),
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: CGRect(x: 100, y: 100, width: 800, height: 600),
+        screen: laptopScreen,
+        screenFrame: .visible),
       CGRect(x: 183, y: 92, width: 1362, height: 966))
   }
 
@@ -24,8 +28,103 @@ final class LayoutCalculatorTests: XCTestCase {
       maximumHeight: 800)
 
     XCTAssertEqual(
-      LayoutCalculator.frame(layout: layout, screen: laptopScreen, screenFrame: .full),
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: CGRect(x: 100, y: 100, width: 800, height: 600),
+        screen: laptopScreen,
+        screenFrame: .full),
       CGRect(x: 114, y: 159, width: 1500, height: 800))
+  }
+
+  func testPushDownPreservesHorizontalExtentAndUsesBottomHalf() {
+    let layout = makeLayout(
+      top: .init(fraction: 0.5, points: 0),
+      preserveCurrent: .horizontal)
+    let currentFrame = CGRect(x: 300, y: 200, width: 700, height: 500)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible),
+      CGRect(x: 300, y: 575, width: 700, height: 542))
+  }
+
+  func testPushRightPreservesVerticalExtentAndUsesRightHalf() {
+    let layout = makeLayout(
+      left: .init(fraction: 0.5, points: 0),
+      preserveCurrent: .vertical)
+    let currentFrame = CGRect(x: 100, y: 200, width: 900, height: 400)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible),
+      CGRect(x: 864, y: 200, width: 864, height: 400))
+  }
+
+  func testPushDownClampsPartialHorizontalExtentToVisibleFrame() {
+    let layout = makeLayout(
+      top: .init(fraction: 0.5, points: 0),
+      preserveCurrent: .horizontal)
+    let currentFrame = CGRect(x: -100, y: 200, width: 500, height: 400)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible),
+      CGRect(x: 0, y: 575, width: 500, height: 542))
+  }
+
+  func testPushRightClampsPartialVerticalExtentToVisibleFrame() {
+    let layout = makeLayout(
+      left: .init(fraction: 0.5, points: 0),
+      preserveCurrent: .vertical)
+    let currentFrame = CGRect(x: 100, y: 1000, width: 900, height: 200)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible),
+      CGRect(x: 864, y: 917, width: 864, height: 200))
+  }
+
+  func testPreservedExtentLargerThanReferenceFrameIsClamped() {
+    let layout = makeLayout(
+      top: .init(fraction: 0.5, points: 0),
+      preserveCurrent: .horizontal)
+    let currentFrame = CGRect(x: -50, y: 200, width: 2000, height: 400)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible),
+      CGRect(x: 0, y: 575, width: 1728, height: 542))
+  }
+
+  func testPreservedExtentRespectsSizeConstraints() {
+    let layout = makeLayout(
+      minimumWidth: 600,
+      maximumWidth: 650,
+      preserveCurrent: .horizontal)
+    let currentFrame = CGRect(x: 300, y: 200, width: 700, height: 400)
+
+    XCTAssertEqual(
+      LayoutCalculator.frame(
+        layout: layout,
+        currentFrame: currentFrame,
+        screen: laptopScreen,
+        screenFrame: .visible).size.width,
+      650)
   }
 
   func testOffsetsCascadedWindowsWithinReferenceFrame() {
@@ -133,7 +232,8 @@ final class LayoutCalculatorTests: XCTestCase {
     minimumWidth: Double? = nil,
     minimumHeight: Double? = nil,
     maximumWidth: Double? = nil,
-    maximumHeight: Double? = nil
+    maximumHeight: Double? = nil,
+    preserveCurrent: PreservedAxis? = nil
   ) -> WindowLayout {
     WindowLayout(
       insets: .init(left: left, top: top, right: right, bottom: bottom),
@@ -141,7 +241,8 @@ final class LayoutCalculatorTests: XCTestCase {
       minimumWidth: minimumWidth,
       minimumHeight: minimumHeight,
       maximumWidth: maximumWidth,
-      maximumHeight: maximumHeight)
+      maximumHeight: maximumHeight,
+      preserveCurrent: preserveCurrent)
   }
 
   private let laptopScreen = ScreenGeometry(
