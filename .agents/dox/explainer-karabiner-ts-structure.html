@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="artifact-type" content="code-explainer">
+<title>How karabiner-ts is built</title>
+<style>
+:root{color-scheme:dark;--bg:#0f1115;--panel:#171a21;--line:#303745;--text:#e7e2d7;--muted:#aeb6c5;--accent:#f4c95d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:76rem;margin:auto;padding:clamp(1rem,4vw,3rem)}
+a{color:var(--accent);text-underline-offset:.2em}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+h1,h2,h3{line-height:1.2;color:#fff}h1{font-size:clamp(2rem,5vw,3.5rem);margin:.25rem 0 1rem}h2{font-size:1.6rem;margin:0 0 1rem}h3{font-size:1.1rem;margin:1.3rem 0 .4rem}
+p{margin:.6rem 0}section{margin-block:2.5rem;scroll-margin-top:1rem}.lead{font-size:1.15rem;max-width:65ch}.label{color:var(--accent);font-weight:700;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}.muted,.source{color:var(--muted)}.source{font-size:.9rem}
+nav ul{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;padding:0;list-style:none}nav a{display:inline-block;padding:.3rem 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:.7rem;padding:clamp(1rem,2vw,1.5rem)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:1rem}.flow{padding-inline-start:1.5rem}.flow li{padding-inline-start:.4rem;margin-block:.8rem}.flow strong{color:#fff}
+code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9em}code{overflow-wrap:anywhere}pre{overflow-x:auto;background:#090b0f;border:1px solid var(--line);border-radius:.5rem;padding:1rem;line-height:1.5}pre code{overflow-wrap:normal}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:start}th,td{padding:.7rem .8rem;vertical-align:top;border-bottom:1px solid var(--line);text-align:start}th{color:#fff}td:first-child{white-space:nowrap}ul{padding-inline-start:1.4rem}li+li{margin-top:.4rem}.note{border-inline-start:3px solid var(--accent);padding-inline-start:1rem}
+@media(max-width:40rem){main{padding:1rem}th,td{padding:.6rem}.table-wrap{margin-inline:-.25rem}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="label">Codebase explainer · working tree</p>
+<h1>How karabiner-ts is built</h1>
+<p class="lead">TypeScript generates a Karabiner-Elements configuration. At runtime, Karabiner sends selected shortcut commands to a persistent Swift server that moves macOS windows.</p>
+<p class="muted">This page describes the working-tree source at the time of writing. Generated output and the installed configuration can differ until generation and installation run.</p>
+<nav aria-label="Contents"><ul>
+<li><a href="#flow">Data flow</a></li><li><a href="#structure">Repository map</a></li><li><a href="#shortcuts">Window shortcuts</a></li><li><a href="#commands">Command contract</a></li><li><a href="#execution">Swift execution</a></li><li><a href="#operations">Build and install</a></li>
+</ul></nav>
+</header>
+<section id="flow">
+<h2>From a key press to a window</h2>
+<div class="card">
+<ol class="flow">
+<li><strong>Author.</strong> <code>createMainRules()</code> in <a href="../../src/rules.ts">src/rules.ts</a> builds mappings and version 3 user-command payloads. <code>karabinerRule()</code> in <a href="../../src/builders.ts">src/builders.ts</a> turns mappings into manipulators.</li>
+<li><strong>Generate.</strong> <a href="../../src/main.ts">src/main.ts</a> writes <code>buildKarabinerJson()</code>. <a href="../../src/config.ts">src/config.ts</a> assembles the selected profile, rules, devices, and parameters; <a href="../../src/serialize.ts">src/serialize.ts</a> and <a href="../../src/json.ts">src/json.ts</a> serialize and print it as <code>karabiner.json</code>.</li>
+<li><strong>Install.</strong> The default <code>make</code> target generates the repo file and copies it to <code>~/.config/karabiner/karabiner.json</code>. This does not rebuild or restart the server.</li>
+<li><strong>Dispatch.</strong> Karabiner matches the key and sends the <code>send_user_command</code> payload to its user-command receiver socket. <code>ServerMain.swift</code> decodes it and submits it to <code>CommandCoordinator</code>.</li>
+<li><strong>Execute.</strong> <code>WindowManager</code> resolves the target and uses macOS Accessibility (AX) APIs. For a cycle, <code>CycleTracker</code> selects a step and <code>LayoutCalculator</code> computes a frame. The move-display command takes a separate path.</li>
+</ol>
+<p class="source">Sources: <a href="../../Makefile">Makefile</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/ServerMain.swift">ServerMain.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/CommandCoordinator.swift">CommandCoordinator.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/WindowManager.swift">WindowManager.swift</a>.</p>
+</div>
+<p class="note">The generator and server run at different times. <code>karabiner.json</code> carries the runtime policy; it does not contain or start the Swift server.</p>
+</section>
+<section id="structure">
+<h2>Repository map</h2>
+<div class="grid">
+<div class="card"><h3>TypeScript generator</h3>
+<ul><li><a href="../../src/rules.ts">src/rules.ts</a> — shortcut definitions, layouts, payloads, and keyboard rules.</li><li><a href="../../src/builders.ts">src/builders.ts</a> — mapping DSL, conditions, and layer manipulators.</li><li><a href="../../src/types.ts">src/types.ts</a> — configuration model and key-code names.</li><li><a href="../../src/config.ts">src/config.ts</a>, <a href="../../src/serialize.ts">src/serialize.ts</a>, <a href="../../src/json.ts">src/json.ts</a> — profile assembly and JSON output.</li><li><a href="../../src/rules.test.ts">src/rules.test.ts</a> — tests for the generated rules and payloads; <a href="../../src/rules.sample.ts">src/rules.sample.ts</a> shows the DSL.</li></ul></div>
+<div class="card"><h3>Swift runtime</h3>
+<ul><li><a href="../../kg-windowlayout-karabiner-server/Package.swift">kg-windowlayout-karabiner-server/Package.swift</a> — macOS executable, receiver dependency, and test target.</li><li><a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/LayoutCommand.swift">LayoutCommand.swift</a> — command decoding, models, defaults, and validation.</li><li><a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/WindowManager.swift">WindowManager.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/LayoutCalculator.swift">LayoutCalculator.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/DisplayGeometry.swift">DisplayGeometry.swift</a> — AX operations and geometry.</li><li><a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/CycleTracker.swift">CycleTracker.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/FocusMonitor.swift">FocusMonitor.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/FocusSuppression.swift">FocusSuppression.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/WorkspaceActivationMonitor.swift">WorkspaceActivationMonitor.swift</a> — cycle and focus state.</li><li><a href="../../kg-windowlayout-karabiner-server/Tests/CustomKarabinerWindowLayoutServerTests/">Tests/CustomKarabinerWindowLayoutServerTests/</a> — command, geometry, cycle, and observer tests.</li></ul></div>
+</div>
+<p><code>src/serialize.ts</code> follows Kotlin field order and JSON names. <code>JsonDouble</code> in <code>src/json.ts</code> retains a decimal on integral doubles. The project started as a Kotlin port; do not assume byte parity with the sibling without checking it.</p>
+<p>Other rules in <code>src/rules.ts</code> include Right Command → Right Control, Caps Lock as Escape/Hyper, Vim-style navigation, and J/F layers. Hyper uses the four right-side Control, Command, Option, and Shift modifiers. Layer mappings produce a variable-gated manipulator and a simultaneous-key manipulator.</p>
+</section>
+<section id="shortcuts">
+<h2>Window shortcuts</h2>
+<p>Hyper means Caps Lock held as the four right-side modifiers. These shortcuts use the visible screen frame. All app launchers activate their target and use the existing screen of the focused window.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Keys</th><th scope="col">Current behavior</th></tr></thead><tbody>
+<tr><td>Hyper+1</td><td>1Password: one bottom-right layout.</td></tr>
+<tr><td>Hyper+M / W / O / S</td><td>Messages, WhatsApp, Obsidian, Slack: alternate tall and wide layouts with app-specific offsets.</td></tr>
+<tr><td>Hyper+0</td><td>Spotify: one full-height left layout with an 800-point width constraint.</td></tr>
+<tr><td>Hyper+B</td><td>Firefox: alternate tall and wide layouts; apply to all usable windows with a 48-point cascade.</td></tr>
+<tr><td>Hyper+T</td><td>Rex first; Ghostty is the fallback. Alternate centered tall and wide layouts without an offset.</td></tr>
+<tr><td>Hyper+Up / Down</td><td>Frontmost window: alternate the corresponding half and two-thirds.</td></tr>
+<tr><td>Hyper+Left / Right</td><td>Frontmost window: cycle through the corresponding half, one-third, and two-thirds.</td></tr>
+<tr><td>Hyper+F</td><td>Frontmost window: visible-frame fill, centered 90% × 90%, then the frame captured at the start of the cycle. Fill is not macOS fullscreen.</td></tr>
+<tr><td>Hyper+D</td><td>Move the frontmost usable window to the next display; preserve its size and relative offset where possible.</td></tr>
+</tbody></table></div>
+<p class="source">Source: <a href="../../src/rules.ts">src/rules.ts</a> — <code>appWindowShortcuts</code>, <code>directionalWindowShortcuts</code>, <code>fillWindowShortcuts</code>, and <code>createMainRules()</code>.</p>
+<p>For app targets, a running background app is activated without resizing. The next press starts at layout 0. A newly launched app gets its first layout after its focused window is available.</p>
+<p>The server checks the ordered primary and fallback bundle identifiers and selects the first that is running <em>or</em> installed. Thus installed Rex wins even if Ghostty is already running. If no candidate is available, the server logs an error and returns.</p>
+<p class="source">Sources: <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/LayoutCommand.swift">LayoutCommand.swift</a> — <code>ApplicationTarget.firstAvailableBundleIdentifier</code>; <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/WindowManager.swift">WindowManager.swift</a> — <code>cycleApplication</code>.</p>
+</section>
+<section id="commands">
+<h2>The user-command contract</h2>
+<div class="grid">
+<div class="card"><h3><code>cycle_window_layout</code></h3>
+<p>Version 3 payloads carry a <code>cycle_id</code>, application or frontmost <code>target</code>, screen strategy and frame, window scope, cascade offset, layout list, and policy groups.</p>
+<ul><li>Application targets may include ordered <code>fallback_bundle_identifiers</code>, plus open and activation flags.</li><li>Each layout contains four fraction-plus-points insets, resize anchors, optional minimum/maximum sizes, and optional <code>restore_original</code>.</li><li>Filters, post-layout focus, cycle resets, and timeouts are encoded in the payload.</li></ul></div>
+<div class="card"><h3><code>move_window_to_display</code></h3>
+<p>Version 3 carries <code>screen_frame</code>, <code>window_filter</code>, <code>focus_after_layout</code>, and <code>timeouts</code>. It has no layout list or cycle ID.</p>
+<p>The server moves the focused usable window to the next entry in <code>NSScreen.screens</code>, wrapping at the end. With one display, it does nothing.</p></div>
+</div>
+<p>Current rules reject non-standard, minimized, and fullscreen windows; the server also requires a positive-size AX window. The rules request raise and refocus. They set a 1-second AX timeout, 5-second application and focused-window waits, and 25-ms polling.</p>
+<p>Both application and frontmost cycle payloads request reset-on-app and reset-on-focused-window behavior. App-cycle payloads additionally request focus-only activation and reset when the target is not frontmost. The move command has no cycle policy of its own; the coordinator uses its default cycle policy.</p>
+<p><code>UserCommand.decode</code> rejects unsupported versions and unknown commands. Cycle commands also require a nonempty cycle ID and layouts, valid size constraints, and valid timeouts. Optional policies receive Swift defaults; the cycle decoder also supports the legacy target reset field. The move decoder applies defaults but does not perform the cycle decoder's timeout-value validation.</p>
+<p class="source">Sources: <a href="../../src/rules.ts">src/rules.ts</a> — <code>policyGroups</code> and command builders; <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/LayoutCommand.swift">LayoutCommand.swift</a> — <code>UserCommand.decode</code> and policy models.</p>
+</section>
+<section id="execution">
+<h2>Inside the Swift server</h2>
+<ol class="flow">
+<li><strong>Receive and coordinate.</strong> <code>ServerMain</code> retains a <code>KEUserCommandReceiver</code> on the default socket. Invalid payloads are logged. <code>CommandCoordinator.submit</code> cancels prior tasks before starting a new one.</li>
+<li><strong>Select a cycle step.</strong> <code>CycleTracker</code> stores one current command/window/index state, not an independent history for every window. A matching command and window advance modulo the layout count; another command/window or a reset starts at index 0. Activation and focused-window notifications can clear the state. Focus suppression prevents the server's own raise/refocus notification from immediately resetting it.</li>
+<li><strong>Compute a frame.</strong> <code>DisplayGeometry</code> converts AppKit screen coordinates to AX coordinates. <code>LayoutCalculator.frame</code> resolves each inset as <code>screen dimension × fraction + points</code>, applies size limits and anchors, and computes a frame. Cascading offsets are clamped to the reference frame.</li>
+<li><strong>Apply or restore.</strong> <code>WindowManager.apply</code> captures each selected window's frame at cycle index 0. A restore step uses that saved frame. Other steps set position and size, then re-anchor using the size the app actually accepted. The configured raise/refocus operations follow.</li>
+<li><strong>Move displays separately.</strong> <code>moveFrontmostWindowToNextDisplay</code> chooses the source by window center, or largest screen overlap, then translates the window by the reference-frame origin difference. It clamps the origin to the destination; an oversized window is pinned to the leading edge. No cycle index is advanced.</li>
+</ol>
+<p class="source">Sources: <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/ServerMain.swift">ServerMain.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/CommandCoordinator.swift">CommandCoordinator.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/CycleTracker.swift">CycleTracker.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/DisplayGeometry.swift">DisplayGeometry.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/LayoutCalculator.swift">LayoutCalculator.swift</a>, <a href="../../kg-windowlayout-karabiner-server/Sources/CustomKarabinerWindowLayoutServer/WindowManager.swift">WindowManager.swift</a>.</p>
+</section>
+<section id="operations">
+<h2>Build, install, and checks</h2>
+<div class="table-wrap"><table><thead><tr><th scope="col">Target</th><th scope="col">Effect</th></tr></thead><tbody>
+<tr><td><code>make</code> / <code>make ts</code></td><td>Generate <code>karabiner.json</code> and copy it to the Karabiner config directory.</td></tr>
+<tr><td><code>make generate</code></td><td>Generate the repo file without installing it.</td></tr>
+<tr><td><code>make test</code> / <code>make check</code></td><td>Run Bun tests / TypeScript type checking.</td></tr>
+<tr><td><code>make install-window-server</code></td><td>Build a release app, remove the previous installation, reset its Accessibility grant, sign and install the app and LaunchAgent, briefly start it for the prompt, then stop it and open Settings.</td></tr>
+<tr><td><code>make restart-window-server</code></td><td>Bootstrap the installed LaunchAgent after granting Accessibility permission.</td></tr>
+<tr><td><code>make restart-karabiner</code></td><td>Restart Karabiner's console user server.</td></tr>
+</tbody></table></div>
+<p class="note"><strong>WARNING:</strong> Installing the window server removes the previous app and resets its Accessibility grant. Enable the server in System Settings before restarting it. Ordinary rule changes need configuration generation and installation, not a server rebuild.</p>
+<p><code>README.md</code> describes a <code>make parity</code> target, but the current <code>Makefile</code> does not define one. Treat parity as an unverified historical goal, not a current check.</p>
+<p class="source">Sources: <a href="../../Makefile">Makefile</a>, <a href="../../README.md">README.md</a>, <a href="../../kg-windowlayout-karabiner-server/kg-windowlayout-karabiner-server.plist">LaunchAgent template</a>.</p>
+</section>
+</main>
+</body>
+</html>
